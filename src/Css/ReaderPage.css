@@ -1,0 +1,15 @@
+.readers-page-comments-div{
+    border-radius: 20px;
+    border: 2px solid gray;
+}
+
+.readers-page-comment-1st-col{
+    border-right: 2px solid gray;
+}
+
+.comment-translated-speaker-btn{
+    margin-left: 0px;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+}

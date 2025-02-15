@@ -1,0 +1,58 @@
+.product-div{
+    position: relative;
+}
+
+.setting-icon{
+    position: absolute;
+    bottom: -20%;
+    left: -20%;
+}
+
+.product-row{
+    border-radius: 20px;
+    border: 2px solid gray;
+}
+
+.product-img{
+    border-radius: 18px 0px 0px 18px;
+
+}
+
+.product-heading{
+   
+        width: 60%;
+        text-align: center;
+}
+
+.product-audio-file{
+    border-radius: 20px;
+    border: 2px solid gray;
+}
+
+.product-start-rec-button{
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+    background-color: green;
+    border: none;
+    box-shadow: 0px 0px 2px gray;
+}
+
+.product-start-stop-button{
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+    background-color: red;
+    border: none;
+    box-shadow: 0px 0px 2px gray;
+}
+
+.product-page-reader-btn{
+    border: none;
+    padding: 5px 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    background-color:#ffc107;
+    box-shadow: 0px 0px 2px gainsboro;
+    color: white;
+}
