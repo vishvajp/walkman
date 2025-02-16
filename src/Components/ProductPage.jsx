@@ -10,21 +10,34 @@ import iso6391 from "iso-639-1";
 import axios from "axios";
 import "../Css/Product.css";
 
+function getDate() {
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const year = today.getFullYear();
+  const date = today.getDate();
+  return `${date}/${month}/${year}`;
+}
+
 const ProductPage = () => {
   const [location, setLocation] = useState("");
   const [language, setLanguage] = useState("");
   // const [latitude, setLatitude] = useState('51.1657');
   // const [longitude, setLongitude] = useState('10.4515');
+  const [inTrans, setIntrans] = useState(true);
+  const [inputTrans, setInputTrans] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const apiKey = "AIzaSyCemA7pZSzNgEfnp77-LLvKJkODkPUGkCU";
   const [recordings, setRecordings] = useState([]);
   const [transcriptions, setTranscriptions] = useState([]);
-
+  const [comments, setComments] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const navigate = useNavigate();
   const userLanguage = navigator.language || navigator.languages[0];
-
+  const [currentDate, setCurrentDate] = useState(getDate());
+  const date = new Date();
+  const showTime =
+    date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -87,8 +100,6 @@ const ProductPage = () => {
     console.log("Longitude:", longitude);
   }, [latitude, longitude]);
 
-
-
   const getCountryLanguages = async (countryName) => {
     try {
       const response = await axios.get(
@@ -128,7 +139,7 @@ const ProductPage = () => {
 
   console.log(location);
   console.log(language);
-  console.log(transcriptions)
+  console.log(transcriptions);
 
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
@@ -150,10 +161,8 @@ const ProductPage = () => {
         const recordedBlob = new Blob(chunks.current, { type: "audio/webm" });
         const recordedUrl = URL.createObjectURL(recordedBlob);
 
-        setRecordings((prevRecordings) => [
-          ...prevRecordings,
-          { blob: recordedBlob, url: recordedUrl },
-        ]);
+        // Store audio comment
+        setComments((prev) => [...prev, { type: "audio", url: recordedUrl }]);
 
         chunks.current = [];
       };
@@ -163,12 +172,6 @@ const ProductPage = () => {
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
-
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      alert("Speech recognition not supported in this browser.");
-      return;
-    }
-
     const recognition = new (window.SpeechRecognition ||
       window.webkitSpeechRecognition)();
     recognition.lang = language;
@@ -177,14 +180,7 @@ const ProductPage = () => {
 
     recognition.onresult = (event) => {
       const newTranscript = event.results[0][0].transcript;
-      setTranscriptions((prevTranscriptions) => [
-        ...prevTranscriptions,
-        newTranscript,
-      ]);
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
+      setTranscriptions((prev) => [...prev, newTranscript]); // Save transcript
     };
 
     recognition.start();
@@ -198,6 +194,14 @@ const ProductPage = () => {
       mediaStream.current.getTracks().forEach((track) => track.stop());
     }
     setIsRecording(false);
+  };
+
+  const handleTextComment = () => {
+    if (inputTrans.trim() !== "") {
+      setComments((prev) => [...prev, { type: "text", text: inputTrans }]); // Store text comment
+      setTranscriptions((prev) => [...prev, inputTrans]); // Store transcript
+      setInputTrans("");
+    }
   };
 
   const downloadAudio = (blob, index) => {
@@ -262,38 +266,74 @@ const ProductPage = () => {
       <div className="row mt-5">
         <div className="col-2"></div>
         <div className="col-8 ">
-          <div className="product-audio-file">
-            <div className="d-flex justify-content-center ">
+          <div className="product-audio-file d-flex flex-column align-items-center">
+            <d iv className="d-flex justify-content-center ">
               <h3>Comments</h3>
-            </div>
+            </d>
 
             {/* Display all recordings */}
             <div className="comment-audio-div d-flex flex-column align-items-center">
-              {recordings.map((recording, index) => (
-                <div key={index} className="mb-3">
-                  <audio controls src={recording.url} />
+              {comments.map((comment, index) => (
+                <div
+                  key={index}
+                  className="product-single-comment mb-3 d-flex flex-column"
+                >
+                  <p>
+                    {" "}
+                    <span>Vishva</span>
+                    <span>{currentDate}</span>
+                    <span>{showTime}</span>
+                  </p>
+
+                  {comment.type === "audio" ? (
+                    <audio controls src={comment.url} />
+                  ) : (
+                    <p>{comment.text}</p>
+                  )}
                 </div>
               ))}
             </div>
 
             {/* Single microphone button */}
             <div className="d-flex justify-content-center mb-2">
-              <button className={isRecording ? "product-start-stop-button" :"product-start-rec-button"} onClick={isRecording ? stopRecording : startRecording}>
-                {isRecording ? <FaStopCircle /> : <FaMicrophone />}
-              </button>
+              <input
+                onChange={(e) => {
+                  setInputTrans(e.target.value);
+                  if (e.target.value.length > 0) {
+                    setIntrans(false);
+                  } else setIntrans(true);
+                }}
+              ></input>
+              {inTrans ? (
+                <button
+                  className={
+                    isRecording
+                      ? "product-start-stop-button"
+                      : "product-start-rec-button"
+                  }
+                  onClick={isRecording ? stopRecording : startRecording}
+                >
+                  {isRecording ? <FaStopCircle /> : <FaMicrophone />}
+                </button>
+              ) : (
+                <button onClick={handleTextComment}>ok</button>
+              )}
             </div>
           </div>
           <div className="d-flex justify-content-center align-items-center mt-2 ">
-            <span className="me-2">Click this button to see comments in text</span>
-        <button className="product-page-reader-btn" onClick={() => navigate("/reader", { state: transcriptions })}>
-          Reader
-        </button>
-      </div>
+            <span className="me-2">
+              Click this button to see comments in text
+            </span>
+            <button
+              className="product-page-reader-btn"
+              onClick={() => navigate("/reader", { state: transcriptions })}
+            >
+              Reader
+            </button>
+          </div>
         </div>
         <div className="col-2"></div>
       </div>
-
-      
     </div>
   );
 };
