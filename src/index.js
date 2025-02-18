@@ -10,7 +10,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename='/TSIT_Clients/voxment'>
     <App />
     </BrowserRouter>
   </React.StrictMode>

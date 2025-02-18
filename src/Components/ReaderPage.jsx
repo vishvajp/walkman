@@ -4,16 +4,17 @@ import axios from "axios";
 import proBanner from "../Assets/images/Product banner.jpg";
 import product1 from "../Assets/images/product1.jpg";
 import hatIcon from "../Assets/images/ser-1.png";
+import { FaCirclePlay } from "react-icons/fa6";
 import "../Css/ReaderPage.css";
 
 const GOOGLE_API_KEY = "AIzaSyCCh8LR2CZEAfKDQbgByZKJy53MXldqQP0"; // Replace with your API key
 
 const ReaderPage = () => {
   const location = useLocation();
-  const text = location.state;
+  const singleCommnet = location.state?.comments;
   const [selectedLanguage, setSelectedLanguage] = useState("en");
-  const [translatedSentences, setTranslatedSentences] = useState([]);
-
+  const [translatedComments, setTranslatedComments] = useState([]);
+console.log(singleCommnet);
   useEffect(() => {
     translateSentences();
   }, [selectedLanguage]);
@@ -22,12 +23,12 @@ const ReaderPage = () => {
   const translateSentences = async () => {
     try {
       const translations = await Promise.all(
-        text?.map(async (sentence) => {
+        singleCommnet?.map(async (sentence) => {
           const url = `https://translation.googleapis.com/language/translate/v2`;
           const res = await axios.post(
             url,
             {
-              q: sentence,
+              q: sentence.text,
               target: selectedLanguage,
               format: "text",
             },
@@ -38,14 +39,18 @@ const ReaderPage = () => {
             }
           );
 
-          return res.data?.data?.translations[0]?.translatedText || "Translation Error";
+          const translatedText = res.data?.data?.translations[0]?.translatedText || "Translation Error";
+          return {
+            ...sentence, // Keep all other fields the same
+            text: translatedText, // Replace the original text with the translated text
+          };
         })
       );
 
-      setTranslatedSentences(translations);
+      setTranslatedComments(translations); 
     } catch (error) {
       console.error("Translation failed:", error);
-      setTranslatedSentences(["Translation failed."]);
+      setTranslatedComments(singleCommnet); 
     }
   };
 
@@ -79,7 +84,7 @@ const ReaderPage = () => {
   return (
     <div>
       <div>
-        <img src={proBanner} alt="Product Banner" />
+        <img src={proBanner} className="product-banner-img" alt="Product Banner" />
       </div>
       <div className="d-flex justify-content-center mb-4 mt-4">
         <div className="product-heading">
@@ -95,13 +100,13 @@ const ReaderPage = () => {
         <div className="col-2"></div>
         <div className="col-8">
           <div className="row product-row">
-            <div className="col p-0">
+            <div className="col-12 col-lg-6 p-0">
               <div className="product-div">
-                <img className="product-img" src={product1} alt="Product" />
+                <img className="product-img" src={product1} style={{width:"100%"}} alt="Product" />
                 <img className="setting-icon" src={hatIcon} alt="Icon" />
               </div>
             </div>
-            <div className="col">
+            <div className="col-12 col-lg-6">
               <div className="d-flex flex-column p-4">
                 <h3>
                   <span style={{ color: "red" }}>Pre-Commissioning</span> Services
@@ -131,6 +136,7 @@ const ReaderPage = () => {
         <div className="d-flex justify-content-center mb-2">
           <span className="me-2">Select language to translate</span>
           <select
+          className="reader-page-select"
             onChange={(e) => setSelectedLanguage(e.target.value)}
             value={selectedLanguage}
           >
@@ -157,6 +163,7 @@ const ReaderPage = () => {
         <option value="he">Hebrew</option>
         <option value="id">Indonesian</option>
         <option value="vi">Vietnamese</option>
+        <option value="ms">Malay</option>
         <option value="th">Thai</option>
         <option value="el">Greek</option>
         <option value="cs">Czech</option>
@@ -173,7 +180,9 @@ const ReaderPage = () => {
         <option value="et">Estonian</option>
         <option value="mt">Maltese</option>
         <option value="is">Icelandic</option>
-        <option value="tl">Tagalog</option>
+        <option value="tl">Tagalog</option>\
+       
+        
           </select>
         </div>
         <div className="col-1"></div>
@@ -181,30 +190,76 @@ const ReaderPage = () => {
           <div className="row">
             <div className="col readers-page-comment-1st-col">
               <div>
-                <h4 className="text-center">Original comments</h4>
-                <ul>
-                  {text?.map((sentence, index) => (
-                    <li key={index}>{sentence}</li>
-                  ))}
-                </ul>
+                <h4 className="text-center mb-3">Original comments</h4>
+                 <div className="comment-audio-div d-flex jusify-content-center flex-column" style={{width: "100%"}}>
+                              {singleCommnet?.map((comment, index) => (
+                                <div key={index} className="product-single-comment mb-3 d-flex">
+                                  <div className="product-comment-image-div d-flex justify-content-center align-items-center">
+                                    <img className="product-comment-image" src={comment.img}></img>
+                                  </div>
+                                  <div
+                                    className="d-flex flex-column ms-2"
+                                    style={{ width: "100%" }}
+                                  >
+                                    <p className="mb-0">
+                                      <span className="me-2" style={{ fontWeight: "bold" }}>
+                                       {comment.name}
+                                      </span>
+                                      <span className="product-comment-date">
+                                        {comment.time}
+                                      </span>
+                                    </p>
+                                   
+                                    <p className="mb-0">{comment.text}</p>
+                                        <p className="mb-0 text-end product-comment-date">
+                                          {comment.date}
+                                        </p>
+                                   
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
               </div>
             </div>
             <div className="col">
               <div>
-                <h4 className="text-center">Translated comments</h4>
-                <ul>
-                  {translatedSentences?.map((sentence, index) => (
-                    <li key={index} className="mb-1">
-                      {sentence}
-                      <button
-                        onClick={() => speakText(sentence, selectedLanguage)}
-                        className="comment-translated-speaker-btn ms-2"
+                <h4 className="text-center mb-3">Translated comments</h4>
+                <div className="comment-audio-div d-flex jusify-content-center flex-column" style={{width: "100%"}}>
+                              {translatedComments?.map((comment, index) => (
+                                <div key={index} className="product-single-comment mb-3 d-flex">
+                                  <div className="product-comment-image-div d-flex justify-content-center align-items-center">
+                                    <img className="product-comment-image" src={comment.img}></img>
+                                  </div>
+                                  <div
+                                    className="d-flex flex-column ms-2"
+                                    style={{ width: "100%" }}
+                                  >
+                                    <p className="mb-0">
+                                      <span className="me-2" style={{ fontWeight: "bold" }}>
+                                       {comment.name}
+                                      </span>
+                                      <span className="product-comment-date">
+                                        {comment.time}
+                                      </span>
+                                    </p>
+                                   
+                                    <p className="mb-0">{comment.text}</p>
+                                        <p className="mb-0 text-end product-comment-date">
+                                          {comment.date}
+                                        </p>
+                                   
+                                  </div>
+                                  <div className="d-flex align-items-center justify-content-center">
+                                  <button
+                        onClick={() => speakText(comment.text, selectedLanguage)}
+                      className="reader-play-button"
                       >
-                        🔊
+                       <FaCirclePlay  className="reader-play-icon" />
                       </button>
-                    </li>
-                  ))}
-                </ul>
+                      </div>
+                                </div>
+                              ))}
+                            </div>
               </div>
             </div>
           </div>

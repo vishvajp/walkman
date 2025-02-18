@@ -8,7 +8,9 @@ import { FaRegStopCircle } from "react-icons/fa";
 import { FaStopCircle } from "react-icons/fa";
 import iso6391 from "iso-639-1";
 import axios from "axios";
+import noimage from "../Assets/images/noImage.jpg";
 import "../Css/Product.css";
+import { IoMdSend } from "react-icons/io";
 
 function getDate() {
   const today = new Date();
@@ -21,12 +23,12 @@ function getDate() {
 const ProductPage = () => {
   const [location, setLocation] = useState("");
   const [language, setLanguage] = useState("");
-  // const [latitude, setLatitude] = useState('51.1657');
-  // const [longitude, setLongitude] = useState('10.4515');
+  const [latitude, setLatitude] = useState('51.1657');
+  const [longitude, setLongitude] = useState('10.4515');
   const [inTrans, setIntrans] = useState(true);
   const [inputTrans, setInputTrans] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  // const [latitude, setLatitude] = useState("");
+  // const [longitude, setLongitude] = useState("");
   const apiKey = "AIzaSyCemA7pZSzNgEfnp77-LLvKJkODkPUGkCU";
   const [recordings, setRecordings] = useState([]);
   const [transcriptions, setTranscriptions] = useState([]);
@@ -95,10 +97,10 @@ const ProductPage = () => {
     getLocation();
   }, [latitude, longitude]);
 
-  useEffect(() => {
-    console.log("Latitude:", latitude);
-    console.log("Longitude:", longitude);
-  }, [latitude, longitude]);
+  // useEffect(() => {
+  //   console.log("Latitude:", latitude);
+  //   console.log("Longitude:", longitude);
+  // }, [latitude, longitude]);
 
   const getCountryLanguages = async (countryName) => {
     try {
@@ -147,6 +149,12 @@ const ProductPage = () => {
 
   const startRecording = async () => {
     try {
+      const now = new Date();
+      const formattedDate = `${now.getDate()}/${
+        now.getMonth() + 1
+      }/${now.getFullYear()}`;
+      const formattedTime = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStream.current = stream;
       mediaRecorder.current = new MediaRecorder(stream);
@@ -162,8 +170,16 @@ const ProductPage = () => {
         const recordedUrl = URL.createObjectURL(recordedBlob);
 
         // Store audio comment
-        setComments((prev) => [...prev, { type: "audio", url: recordedUrl }]);
-
+        setComments((prev) => [
+          ...prev,
+          {
+            type: "audio",
+            url: recordedUrl,
+            date: formattedDate,
+            time: formattedTime,
+            name: "Vishva",  // Replace "Vishva" with dynamic user info
+          },
+        ]);
         chunks.current = [];
       };
 
@@ -198,7 +214,17 @@ const ProductPage = () => {
 
   const handleTextComment = () => {
     if (inputTrans.trim() !== "") {
-      setComments((prev) => [...prev, { type: "text", text: inputTrans }]); // Store text comment
+      const now = new Date();
+      const formattedDate = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+      const formattedTime = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+      const comment = {
+        type: "text",
+        text: inputTrans,
+        date: formattedDate,
+        time: formattedTime,
+        name: "Vishva",  // You can replace "Vishva" with dynamic user info
+      };
+      setComments((prev) => [...prev, comment]);
       setTranscriptions((prev) => [...prev, inputTrans]); // Store transcript
       setInputTrans("");
     }
@@ -216,7 +242,7 @@ const ProductPage = () => {
   return (
     <div>
       <div>
-        <img src={proBanner}></img>
+        <img src={proBanner} className="product-banner-img"></img>
       </div>
       <div className="d-flex justify-content-center mb-4 mt-4">
         <div className="product-heading">
@@ -232,13 +258,13 @@ const ProductPage = () => {
         <div className="col-2"></div>
         <div className="col-8">
           <div className="row product-row">
-            <div className="col p-0">
+            <div className="col-12 col-lg-6 p-0">
               <div className="product-div">
-                <img className="product-img" src={product1}></img>
+                <img className="product-img" src={product1} style={{width:"100%"}}></img>
                 <img className="setting-icon" src={hatIcon}></img>
               </div>
             </div>
-            <div className="col">
+            <div className="col-12 col-lg-6">
               <div className="d-flex flex-column p-4">
                 <h3>
                   <span style={{ color: "red" }}>Pre-Commissioning</span>{" "}
@@ -272,62 +298,93 @@ const ProductPage = () => {
             </d>
 
             {/* Display all recordings */}
-            <div className="comment-audio-div d-flex flex-column align-items-center">
+            <div className="comment-audio-div d-flex jusify-content-center flex-column">
               {comments.map((comment, index) => (
-                <div
-                  key={index}
-                  className="product-single-comment mb-3 d-flex flex-column"
-                >
-                  <p>
-                    {" "}
-                    <span>Vishva</span>
-                    <span>{currentDate}</span>
-                    <span>{showTime}</span>
-                  </p>
+                <div key={index} className="product-single-comment mb-3 d-flex">
+                  <div className="product-comment-image-div d-flex justify-content-center align-items-center">
+                    <img className="product-comment-image" src={noimage}></img>
+                  </div>
+                  <div
+                    className="d-flex flex-column ms-2"
+                    style={{ width: "100%" }}
+                  >
+                    <p className="mb-0">
+                      <span className="me-2" style={{ fontWeight: "bold" }}>
+                        Vishva
+                      </span>
+                      <span className="product-comment-date">
+                        {comment.time}
+                      </span>
+                    </p>
 
-                  {comment.type === "audio" ? (
-                    <audio controls src={comment.url} />
-                  ) : (
-                    <p>{comment.text}</p>
-                  )}
+                    {comment.type === "audio" ? (
+                      <>
+                        <audio controls src={comment.url} />
+                        <p className="mb-0 text-end product-comment-date">
+                          {comment.date}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mb-0">{comment.text}</p>
+                        <p className="mb-0 text-end product-comment-date">
+                          {comment.date}
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Single microphone button */}
-            <div className="d-flex justify-content-center mb-2">
-              <input
-                onChange={(e) => {
-                  setInputTrans(e.target.value);
-                  if (e.target.value.length > 0) {
-                    setIntrans(false);
-                  } else setIntrans(true);
-                }}
-              ></input>
-              {inTrans ? (
-                <button
-                  className={
-                    isRecording
-                      ? "product-start-stop-button"
-                      : "product-start-rec-button"
-                  }
-                  onClick={isRecording ? stopRecording : startRecording}
-                >
-                  {isRecording ? <FaStopCircle /> : <FaMicrophone />}
-                </button>
-              ) : (
-                <button onClick={handleTextComment}>ok</button>
-              )}
-            </div>
+<div className="d-flex justify-content-center mb-2 p-2">
+  <input
+    className="product-page-input me-2"
+    placeholder="Enter your comment"
+    value={inputTrans}
+    onChange={(e) => {
+      setInputTrans(e.target.value);
+      setIntrans(e.target.value.length === 0); // set 'inTrans' to true when input is empty
+    }}
+  />
+  {inputTrans.trim() === "" ? ( // Check if input is empty
+    <button
+      className={isRecording ? "product-start-stop-button" : "product-start-rec-button"}
+      onClick={isRecording ? stopRecording : startRecording}
+    >
+      {isRecording ? <FaStopCircle /> : <FaMicrophone />}
+    </button>
+  ) : (
+    <button className="product-send-button" onClick={handleTextComment}>
+      <IoMdSend className="product-send-input" />
+    </button>
+  )}
+</div>
+
           </div>
           <div className="d-flex justify-content-center align-items-center mt-2 ">
             <span className="me-2">
               Click this button to see comments in text
             </span>
             <button
-              className="product-page-reader-btn"
-              onClick={() => navigate("/reader", { state: transcriptions })}
-            >
+  className="product-page-reader-btn"
+  onClick={() =>
+    navigate("/reader", {
+      state: {
+        // Pass transcriptions as text content
+      
+        comments: comments.map((comment,index) => ({
+          name: comment.name,
+          date: comment.date,
+          time: comment.time,
+          img:noimage,
+          text: transcriptions[index]
+        
+        })),
+      },
+    })
+  }
+>
               Reader
             </button>
           </div>
